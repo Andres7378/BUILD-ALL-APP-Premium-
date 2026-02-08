@@ -44,6 +44,12 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     icon: 'Hammer',
     description: 'Complete renovation and construction projects',
   },
+  {
+    id: 'pool-services',
+    name: 'Pool Services',
+    icon: 'Waves',
+    description: 'Pool maintenance, repairs, and installations',
+  },
 ];
 
 // Texas metro areas with their counties

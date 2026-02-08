@@ -1,15 +1,25 @@
+'use client';
+
+import SearchForm from '@/components/search/SearchForm';
+
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-primary-600 mb-4">
-          Texas Home Services Finder
-        </h1>
-        <p className="text-neutral-600 text-lg">
-          Find trusted home service professionals across Texas
-        </p>
-        {/* TODO: Add hero section with search */}
-      </div>
+    <main className="min-h-screen">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-primary-600 to-primary-800 min-h-screen flex items-start pt-24 md:pt-32 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Find Trusted Home Service Pros in Texas
+          </h1>
+          <p className="text-lg md:text-xl text-primary-100 mb-10 max-w-3xl mx-auto">
+            Compare ratings, read reviews, and connect with top-rated contractors across Houston,
+            Austin, and Dallas-Fort Worth.
+          </p>
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 max-w-4xl mx-auto">
+            <SearchForm />
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
