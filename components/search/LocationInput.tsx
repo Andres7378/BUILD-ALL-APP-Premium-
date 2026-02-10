@@ -1,4 +1,7 @@
+'use client';
+
 import { MapPin } from 'lucide-react';
+import { useLanguage } from '@/lib/language-context';
 
 interface LocationInputProps {
   value: string;
@@ -7,6 +10,8 @@ interface LocationInputProps {
 }
 
 export default function LocationInput({ value, onChange, error }: LocationInputProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="flex-1">
       <div className="relative">
@@ -15,7 +20,7 @@ export default function LocationInput({ value, onChange, error }: LocationInputP
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="e.g., Dallas, Harris County, or 79356"
+          placeholder={t('locationPlaceholder')}
           className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all duration-200 ${
             error ? 'border-red-400' : 'border-neutral-300'
           }`}

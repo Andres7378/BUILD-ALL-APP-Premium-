@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import CategoryPicker from './CategoryPicker';
 import LocationInput from './LocationInput';
+import { useLanguage } from '@/lib/language-context';
 
 export default function SearchForm() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [location, setLocation] = useState('');
   const [categoryError, setCategoryError] = useState('');
@@ -19,14 +21,14 @@ export default function SearchForm() {
     let hasError = false;
 
     if (!selectedCategory) {
-      setCategoryError('Please select a service category.');
+      setCategoryError(t('selectCategory'));
       hasError = true;
     } else {
       setCategoryError('');
     }
 
     if (!location.trim()) {
-      setLocationError('Please enter a location.');
+      setLocationError(t('enterLocation'));
       hasError = true;
     } else {
       setLocationError('');
@@ -46,7 +48,7 @@ export default function SearchForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label className="block text-sm font-semibold text-neutral-700 mb-3">
-          What service do you need?
+          {t('serviceQuestion')}
         </label>
         <CategoryPicker selectedCategory={selectedCategory} onSelect={handleCategorySelect} />
         {categoryError && <p className="text-red-500 text-sm mt-2">{categoryError}</p>}
@@ -59,7 +61,7 @@ export default function SearchForm() {
           className="bg-accent-500 hover:bg-accent-600 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 flex items-center gap-2 whitespace-nowrap cursor-pointer"
         >
           <Search size={20} />
-          Search
+          {t('searchBtn')}
         </button>
       </div>
     </form>

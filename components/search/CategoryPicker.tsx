@@ -1,6 +1,7 @@
 'use client';
 
 import { SERVICE_CATEGORIES } from '@/lib/constants';
+import { useLanguage } from '@/lib/language-context';
 import {
   Blocks,
   Zap,
@@ -30,6 +31,8 @@ interface CategoryPickerProps {
 }
 
 export default function CategoryPicker({ selectedCategory, onSelect }: CategoryPickerProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
       {SERVICE_CATEGORIES.map((category) => {
@@ -54,10 +57,10 @@ export default function CategoryPicker({ selectedCategory, onSelect }: CategoryP
               />
             )}
             <span className={`font-semibold text-sm ${isSelected ? 'text-primary-700' : 'text-neutral-800'}`}>
-              {category.name}
+              {t(category.id)}
             </span>
             <span className="text-xs text-neutral-500 mt-1 leading-tight">
-              {category.description}
+              {t(`${category.id}Desc`)}
             </span>
           </button>
         );

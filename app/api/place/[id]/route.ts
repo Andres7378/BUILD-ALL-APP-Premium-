@@ -16,49 +16,45 @@ export async function GET(
       );
     }
 
-    // Check for cached details (30-day TTL)
-    const cached = await getCachedPlaceDetails(placeId);
-
-    if (cached) {
-      console.log(`✅ Cache HIT for place details: ${placeId}`);
-      return NextResponse.json({
-        ...cached,
-        meta: {
-          cached: true,
-          cachedAt: cached.details_updated_at,
-        },
-      });
+    // ── Try cache first (non-fatal) ────────────────────
+    try {
+      const cached = await getCachedPlaceDetails(placeId);
+      if (cached) {
+        console.log(`✅ Cache HIT for place details: ${placeId}`);
+        return NextResponse.json({
+          ...cached,
+          meta: { cached: true, cachedAt: cached.details_updated_at },
+        });
+      }
+    } catch (cacheError) {
+      console.warn('⚠️  Cache lookup failed (proceeding to API):', cacheError);
     }
 
-    // Cache miss or expired - fetch from Google API
-    console.log(`⚡ Cache MISS for place details: ${placeId} - Fetching from API`);
+    // ── Fetch from Google Places API ───────────────────
+    console.log(`⚡ Fetching place details from API: ${placeId}`);
     const details = await getPlaceDetails(placeId);
 
     if (!details) {
       return NextResponse.json(
-        {
-          error: 'Place not found',
-          message: `No place found with ID: ${placeId}`,
-        },
+        { error: 'Place not found', message: `No place found with ID: ${placeId}` },
         { status: 404 }
       );
     }
 
-    // Save to database
-    await savePlaceDetails(placeId, details);
+    // ── Try to save to cache (non-fatal) ───────────────
+    try {
+      await savePlaceDetails(placeId, details);
+    } catch (saveError) {
+      console.warn('⚠️  Cache save failed (non-fatal):', saveError);
+    }
 
     return NextResponse.json({
       ...details,
-      meta: {
-        cached: false,
-      },
+      meta: { cached: false },
     });
   } catch (error) {
     console.error('Place details API error:', error);
-
-    const message =
-      error instanceof Error ? error.message : 'An unexpected error occurred';
-
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
       { error: 'Failed to get place details', message },
       { status: 500 }

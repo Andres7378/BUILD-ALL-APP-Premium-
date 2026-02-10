@@ -9,18 +9,19 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Rich navy-blue palette — conveys trust & professionalism
         primary: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6',
-          600: '#0d9488',
-          700: '#0f766e',
-          800: '#115e59',
-          900: '#134e4a',
-          950: '#042f2e',
+          50: '#f0f5ff',
+          100: '#e0ecff',
+          200: '#b8d4fe',
+          300: '#85b5fd',
+          400: '#4d8ffa',
+          500: '#2570eb',
+          600: '#1558cc',
+          700: '#1146a6',
+          800: '#0e3a87',
+          900: '#0c2f6e',
+          950: '#081d47',
         },
         accent: {
           50: '#fffbeb',
@@ -47,6 +48,15 @@ export default {
           800: '#292524',
           900: '#1c1917',
           950: '#0c0a09',
+        },
+      },
+      animation: {
+        'in': 'slideUp 0.25s ease-out',
+      },
+      keyframes: {
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(12px) scale(0.97)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
         },
       },
     },

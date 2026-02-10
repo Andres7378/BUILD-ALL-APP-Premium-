@@ -3,6 +3,7 @@
 import { MapPin, ImageOff } from 'lucide-react';
 import { PlaceResult } from '@/lib/types';
 import StarRating from '@/components/ui/StarRating';
+import { useLanguage } from '@/lib/language-context';
 
 interface BusinessCardProps {
   business: PlaceResult;
@@ -10,6 +11,7 @@ interface BusinessCardProps {
 }
 
 export default function BusinessCard({ business, onSelect }: BusinessCardProps) {
+  const { t } = useLanguage();
   const photoRef = business.photos?.[0]?.photo_reference;
 
   return (
@@ -58,7 +60,7 @@ export default function BusinessCard({ business, onSelect }: BusinessCardProps) 
                 : 'bg-red-100 text-red-700'
             }`}
           >
-            {business.opening_hours.open_now ? 'Open' : 'Closed'}
+            {business.opening_hours.open_now ? t('openNow') : t('closedNow')}
           </span>
         )}
       </div>

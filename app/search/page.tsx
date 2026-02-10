@@ -8,6 +8,9 @@ import { PlaceResult } from '@/lib/types';
 import { SERVICE_CATEGORIES } from '@/lib/constants';
 import BusinessGrid from '@/components/results/BusinessGrid';
 import EmptyState from '@/components/results/EmptyState';
+import LanguageToggle from '@/components/ui/LanguageToggle';
+import AIAssistant from '@/components/ui/AIAssistant';
+import { useLanguage } from '@/lib/language-context';
 
 interface SearchMeta {
   category: string;
@@ -20,6 +23,7 @@ interface SearchMeta {
 
 function SearchResults() {
   const searchParams = useSearchParams();
+  const { t, lang } = useLanguage();
   const category = searchParams.get('category') || '';
   const location = searchParams.get('location') || '';
 
@@ -30,11 +34,11 @@ function SearchResults() {
 
   // Get the display name for the category
   const categoryInfo = SERVICE_CATEGORIES.find((c) => c.id === category);
-  const categoryName = categoryInfo?.name || category;
+  const categoryName = categoryInfo ? t(categoryInfo.id) : category;
 
   const fetchResults = useCallback(async () => {
     if (!category || !location) {
-      setError('Missing search parameters. Please select a category and location.');
+      setError(t('missingParams'));
       setLoading(false);
       return;
     }
@@ -49,14 +53,14 @@ function SearchResults() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Something went wrong. Please try again.');
+        setError(data.error || t('fetchError'));
         return;
       }
 
       setResults(data.results);
       setMeta(data.meta);
     } catch {
-      setError('Failed to fetch results. Please check your connection and try again.');
+      setError(t('fetchError'));
     } finally {
       setLoading(false);
     }
@@ -72,22 +76,25 @@ function SearchResults() {
 
   return (
     <main className="min-h-screen bg-neutral-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Back link */}
+      {/* Top bar */}
+      <div className="bg-primary-900 text-white px-4 py-3 flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-primary-600 hover:text-primary-700 font-medium mb-6 transition-colors"
+          className="inline-flex items-center gap-1.5 text-primary-200 hover:text-white font-medium transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Search
+          {t('backToSearch')}
         </Link>
+        <LanguageToggle />
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Loading State */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-10 h-10 text-primary-500 animate-spin mb-4" />
             <p className="text-neutral-600 text-lg">
-              Searching for {categoryName.toLowerCase()} contractors...
+              {t('searching')} {categoryName.toLowerCase()} {t('contractors')}...
             </p>
           </div>
         )}
@@ -101,7 +108,7 @@ function SearchResults() {
                 href="/"
                 className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-2.5 rounded-lg hover:bg-primary-700 transition-colors font-medium"
               >
-                Try a different search
+                {t('tryDifferent')}
               </Link>
             </div>
           </div>
@@ -114,13 +121,18 @@ function SearchResults() {
               <>
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold text-neutral-800">
-                    {meta?.count ?? results.length} {categoryName} contractor
-                    {(meta?.count ?? results.length) !== 1 ? 's' : ''} in {location}
+                    {meta?.count ?? results.length} {categoryName}{' '}
+                    {(meta?.count ?? results.length) !== 1
+                      ? t('contractorPlural')
+                      : t('contractorSingular')}{' '}
+                    {t('inLocation')} {location}
                   </h1>
                   {meta?.cached && meta.cachedAt && (
                     <p className="text-sm text-neutral-400 mt-1">
-                      Cached results from{' '}
-                      {new Date(meta.cachedAt).toLocaleDateString()}
+                      {t('cachedFrom')}{' '}
+                      {new Date(meta.cachedAt).toLocaleDateString(
+                        lang === 'es' ? 'es-MX' : 'en-US'
+                      )}
                     </p>
                   )}
                 </div>
@@ -135,6 +147,9 @@ function SearchResults() {
           </>
         )}
       </div>
+
+      {/* AI Assistant */}
+      <AIAssistant />
     </main>
   );
 }

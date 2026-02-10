@@ -1,6 +1,7 @@
 'use client';
 
 import { Star } from 'lucide-react';
+import { useLanguage } from '@/lib/language-context';
 
 interface StarRatingProps {
   rating: number;
@@ -8,7 +9,7 @@ interface StarRatingProps {
 }
 
 export default function StarRating({ rating, totalReviews }: StarRatingProps) {
-  // Round to nearest 0.5
+  const { t } = useLanguage();
   const rounded = Math.round(rating * 2) / 2;
 
   return (
@@ -16,7 +17,6 @@ export default function StarRating({ rating, totalReviews }: StarRatingProps) {
       <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => {
           const isFull = rounded >= star;
-          // For half stars, round up to full (keep it simple per spec)
           const isHalf = !isFull && rounded >= star - 0.5;
 
           return (
@@ -33,7 +33,7 @@ export default function StarRating({ rating, totalReviews }: StarRatingProps) {
       </div>
       <span className="text-sm text-neutral-600">
         {rating.toFixed(1)}
-        {totalReviews !== undefined && ` (${totalReviews.toLocaleString()} reviews)`}
+        {totalReviews !== undefined && ` (${totalReviews.toLocaleString()} ${t('reviews')})`}
       </span>
     </div>
   );

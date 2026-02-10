@@ -28,52 +28,56 @@ export async function GET(request: NextRequest) {
         {
           error: 'Location must be in Texas',
           message:
-            'Please enter a Texas city, county, or zip code (e.g., Houston, Harris County, 77024)',
+            'Please enter a Texas city, county, or zip code (e.g., Houston, Katy, Harris County, 77024)',
         },
         { status: 400 }
       );
     }
 
-    // Parse radius if provided
     const radius = radiusParam ? parseInt(radiusParam, 10) : undefined;
+    const searchKey = `${category}:${location.toLowerCase().trim()}`;
 
-    // Create search key for caching
-    const searchKey = `${category}:${location.toLowerCase()}`;
+    // ── Try cache first (non-fatal) ───────────────────────
+    try {
+      const needsRefresh = await shouldRefreshCache(searchKey);
 
-    // Check if we should refresh cache (7-day TTL)
-    const needsRefresh = await shouldRefreshCache(searchKey);
-
-    if (!needsRefresh) {
-      // Return cached results
-      const cached = await getCachedSearch(searchKey);
-
-      if (cached) {
-        console.log(`✅ Cache HIT for: ${searchKey}`);
-        return NextResponse.json({
-          results: cached.results,
-          meta: {
-            category,
-            location,
-            metro: cached.meta.metro || locationValidation.metro,
-            count: cached.results.length,
-            cached: true,
-            cachedAt: cached.meta.cachedAt,
-          },
-        });
+      if (!needsRefresh) {
+        const cached = await getCachedSearch(searchKey);
+        if (cached && cached.results && cached.results.length > 0) {
+          console.log(`✅ Cache HIT for: ${searchKey}`);
+          return NextResponse.json({
+            results: cached.results,
+            meta: {
+              category,
+              location,
+              metro: cached.meta.metro || locationValidation.metro,
+              count: cached.results.length,
+              cached: true,
+              cachedAt: cached.meta.cachedAt,
+            },
+          });
+        }
       }
+    } catch (cacheError) {
+      // Cache failed – that's fine, proceed to live API
+      console.warn('⚠️  Cache lookup failed (proceeding to API):', cacheError);
     }
 
-    // Cache miss or expired - fetch from Google API
-    console.log(`⚡ Cache MISS for: ${searchKey} - Fetching from API`);
+    // ── Fetch from Google Places API ──────────────────────
+    console.log(`⚡ Fetching from Google API for: ${searchKey}`);
     const results = await searchPlaces(category, location, radius);
 
-    // Save to database
-    await saveSearchResults(searchKey, {
-      category,
-      location,
-      metro: locationValidation.metro,
-      results,
-    });
+    // ── Try to save to cache (non-fatal) ──────────────────
+    try {
+      await saveSearchResults(searchKey, {
+        category,
+        location,
+        metro: locationValidation.metro,
+        results,
+      });
+    } catch (saveError) {
+      console.warn('⚠️  Cache save failed (non-fatal):', saveError);
+    }
 
     return NextResponse.json({
       results,

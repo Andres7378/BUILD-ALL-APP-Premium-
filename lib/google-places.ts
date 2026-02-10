@@ -15,26 +15,64 @@ const TEXT_SEARCH_URL = 'https://maps.googleapis.com/maps/api/place/textsearch/j
 const DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
 const PHOTO_URL = 'https://maps.googleapis.com/maps/api/place/photo';
 
+// ── Inline city list so this module has ZERO extra imports ───
+const TEXAS_CITY_NAMES: string[] = [
+  // Houston metro
+  'houston','sugar land','katy','pearland','the woodlands','league city',
+  'missouri city','pasadena','baytown','conroe','friendswood','galveston',
+  'texas city','rosenberg','richmond','humble','spring','cypress','tomball',
+  'deer park','la porte','webster','alvin','angleton','bellaire',
+  'west university place','stafford','dickinson','seabrook','kemah',
+  'clear lake','fulshear','magnolia','atascocita','kingwood','cinco ranch',
+  'sienna','fresno','manvel','rosharon','mont belvieu','dayton','liberty',
+  'waller','hempstead','sealy','needville','santa fe','hitchcock','la marque',
+  'brookshire','meadows place','jersey village','memorial','champions','copperfield',
+  // Austin metro
+  'austin','round rock','cedar park','pflugerville','georgetown','leander',
+  'kyle','buda','san marcos','hutto','lakeway','bee cave','dripping springs',
+  'bastrop','smithville','taylor','elgin','manor','lockhart','liberty hill',
+  'wimberley','lago vista','jollyville','brushy creek','westlake','rollingwood',
+  'barton creek','mueller',
+  // DFW metro
+  'dallas','fort worth','arlington','plano','frisco','mckinney','irving',
+  'garland','grand prairie','denton','mesquite','carrollton','richardson',
+  'allen','lewisville','flower mound','mansfield','north richland hills',
+  'rowlett','euless','bedford','grapevine','keller','southlake','colleyville',
+  'hurst','coppell','the colony','rockwall','wylie','prosper','celina',
+  'little elm','sachse','murphy','duncanville','desoto','cedar hill',
+  'lancaster','waxahachie','midlothian','burleson','cleburne','weatherford',
+  'azle','trophy club','corinth','highland village','argyle','justin',
+  'saginaw','white settlement','benbrook','lake worth','crowley','kennedale',
+  'farmers branch','addison','university park','highland park','forney',
+  'kaufman','terrell','ennis','red oak','anna','melissa','princeton',
+  'fate','heath','royse city','haslet','roanoke','decatur','lake dallas',
+  'oak point','aubrey','pilot point','sanger',
+];
+
 /**
  * Validates if a location is in Texas
- * Checks against major metros and counties
+ * Checks against known cities, metro names, counties, TX indicators, and zip codes
  */
 export function validateTexasLocation(location: string): { valid: boolean; metro?: string } {
   const normalized = location.toLowerCase().trim();
+
+  // ── 1. Check against known Texas city names ───
+  for (const city of TEXAS_CITY_NAMES) {
+    if (normalized === city || normalized.startsWith(city + ',') || normalized.startsWith(city + ' ')) {
+      return { valid: true };
+    }
+  }
   
-  // Check each metro area
+  // ── 2. Check each metro area name & counties (original logic) ───
   for (const [metroKey, metroData] of Object.entries(TEXAS_METROS)) {
-    // Check metro name
     if (normalized.includes(metroKey) || normalized.includes(metroData.name.toLowerCase())) {
       return { valid: true, metro: metroData.name };
     }
     
-    // Check counties
     for (const county of metroData.counties) {
       if (normalized.includes(county.toLowerCase())) {
         return { valid: true, metro: metroData.name };
       }
-      // Also check without "County" suffix
       const countyName = county.replace(' County', '');
       if (normalized.includes(countyName.toLowerCase())) {
         return { valid: true, metro: metroData.name };
@@ -42,13 +80,12 @@ export function validateTexasLocation(location: string): { valid: boolean; metro
     }
   }
   
-  // Check for common Texas indicators (zip codes, TX abbreviation, etc.)
-  // If it contains TX or Texas, we'll consider it valid
+  // ── 3. Check for Texas indicators (original logic) ───
   if (normalized.includes('texas') || normalized.includes(', tx')) {
     return { valid: true };
   }
   
-  // Check if it's a 5-digit zip code starting with 7 (most Texas zips)
+  // ── 4. Check 5-digit zip starting with 7 (original logic) ───
   const zipMatch = normalized.match(/\b7\d{4}\b/);
   if (zipMatch) {
     return { valid: true };
@@ -59,6 +96,7 @@ export function validateTexasLocation(location: string): { valid: boolean; metro
 
 /**
  * Searches for places using Google Places Text Search API
+ * IDENTICAL to original working version
  */
 export async function searchPlaces(
   category: string,
@@ -69,14 +107,12 @@ export async function searchPlaces(
     throw new Error('Google Places API key is not configured');
   }
 
-  // Construct search query
-  // Try both formats for better results
+  // Construct search query — same as original
   const queries = [
     `${category} contractor in ${location}, Texas`,
     `${category} services near ${location}, TX`,
   ];
 
-  // Use the first query format
   const query = queries[0];
 
   const params = new URLSearchParams({
@@ -103,7 +139,6 @@ export async function searchPlaces(
       throw new Error(`Google Places API returned status: ${data.status}`);
     }
 
-    // Return up to 20 results
     return (data.results || []).slice(0, 20) as PlaceResult[];
   } catch (error) {
     console.error('Error searching places:', error);
@@ -113,6 +148,7 @@ export async function searchPlaces(
 
 /**
  * Gets detailed information about a specific place
+ * IDENTICAL to original
  */
 export async function getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {
   if (!GOOGLE_PLACES_API_KEY) {
@@ -150,8 +186,7 @@ export async function getPlaceDetails(placeId: string): Promise<PlaceDetails | n
 }
 
 /**
- * Constructs a photo URL for a Google Places photo reference
- * Note: This should typically be proxied through your API to keep the API key secure
+ * Constructs a photo URL — IDENTICAL to original
  */
 export function getPhotoUrl(photoReference: string, maxWidth: number = 400): string {
   if (!GOOGLE_PLACES_API_KEY) {
@@ -168,8 +203,7 @@ export function getPhotoUrl(photoReference: string, maxWidth: number = 400): str
 }
 
 /**
- * Fetches a photo from Google Places API
- * Used by the photo proxy endpoint
+ * Fetches a photo — IDENTICAL to original
  */
 export async function fetchPhoto(photoReference: string, maxWidth: number = 400): Promise<Response> {
   const url = getPhotoUrl(photoReference, maxWidth);
